@@ -4,11 +4,21 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { data } from './data/todos';
 //import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import {Inter_500Medium, useFonts} from '@expo-google-fonts/inter';
+
+
 
 export default function Index() {
 
   const [todos, setTodos] = useState([...data].sort((a, b) => b.id - a.id));
   const [text, setText] = useState('');
+  const [loaded, error] =useFonts({
+    Inter_500Medium,
+  });
+
+  if (!loaded && !error) {
+    return null;
+  }
 
   const addTodo = () => {
     if (text.trim()) {
@@ -95,6 +105,7 @@ const styles = StyleSheet.create({
     padding:10,
     marginRight:10,
     fontSize:18,
+    fontFamily:'Inter_500Medium',
     minWidth:0,
     color:'white',
   },
@@ -126,6 +137,7 @@ const styles = StyleSheet.create({
   todoText: {
     flex:1,
     fontSize: 18,
+    fontFamily:'Inter_500Medium',
     color:'white',
   },
   completedText: {
