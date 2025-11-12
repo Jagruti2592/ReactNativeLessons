@@ -1,20 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Text, View, TextInput, Pressable, StyleSheet,FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { data } from './data/todos';
 //import { FlatList } from 'react-native-reanimated/lib/typescript/Animated';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import {Inter_500Medium, useFonts} from '@expo-google-fonts/inter';
+import Animated ,{ LinearTransition } from 'react-native-reanimated';
+import { createContext} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 
-export default function Index() {
+export const ThemeContext = createContext();
 
-  const [todos, setTodos] = useState([...data].sort((a, b) => b.id - a.id));
+export const ThemeProvider = ({ children }) => {
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  return (
+    <ThemeContext.Provider value={{ isDarkMode, setIsDarkMode }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export default function App() {
+
+  const [todos, setTodos] = useState([]);
   const [text, setText] = useState('');
   const [loaded, error] =useFonts({
     Inter_500Medium,
   });
+
+  useEffect(()=> {
+    const fetchData = async () =>{
+      try{
+        const jsonValue = await AsyncStorage.getItem("TodoApp")
+        const storageTodos = jsonValue != null ? JSON.parse
+        (jsonValue) : null 
+        
+        if (storageTodos && storageTodos.length) {
+          setTodos(storageTodos((a, b) => b.id - a.id));
+        }else{
+          setTodos(data.sort((a, b) => b.id - a.id));
+          }
+       } catch(e){
+        console.error(e)
+      }
+    }
+
+    fetchData()
+  } ,[data])
+
+  useEffect(() => {
+    const storeData = async () => {
+      try {
+        const jsonValue = JSON.stringify(todos);
+        await AsyncStorage.setItem("TodoApp", jsonValue);
+      } catch (e) {
+        console.error(e);
+      }
+      
+   }
+   storeData();
+  },[todos]);
+
 
   if (!loaded && !error) {
     return null;
@@ -70,12 +119,15 @@ export default function Index() {
           <Text style={styles.addButtonText}>Add</Text>
         </Pressable>
       </View>
-      <FlatList
+      <Animated.FlatList
         data={todos}
         renderItem ={renderItem}
         keyExtractor={todo => todo.id}
-        containerContainerStyle={{ flexGrow:1}}>
-        </FlatList>
+        containerContainerStyle={{ flexGrow:1}}
+        itemLayoutAnimation ={LinearTransition}
+        keyboardDismissMode ="on-drag"
+        >
+        </Animated.FlatList>
     </SafeAreaView>
   );
 }
@@ -99,7 +151,7 @@ const styles = StyleSheet.create({
 
   input: {
     flex: 1,
-    backgroundColor: '#222',
+    backgroundColor: '#bed1cbff',
     borderWidth:1,
     borderRadius:5,
     padding:10,
@@ -112,7 +164,7 @@ const styles = StyleSheet.create({
 
 
   addButton: {
-    backgroundColor: '#1e90ff',
+    backgroundColor: '#6091c2ff',
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 6,
@@ -128,7 +180,7 @@ const styles = StyleSheet.create({
     padding: 12,
     gap:4,
     borderBottomWidth: 1,
-    borderBottomColor: '#333',
+    borderBottomColor: '#8a8080ff',
     width: '100%',
     maxWidth:1024,
     marginHorizontal:'auto',
